@@ -29,7 +29,7 @@ The infrastructure consists of:
 
 ### Infrastructure Diagram
 
-![AWS Infrastructure Diagram](frontend-architecture.png)
+![AWS Infrastructure Diagram](architecture-4k.png)
 
 
 
