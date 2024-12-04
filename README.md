@@ -39,6 +39,7 @@ The infrastructure consists of:
 - **WAF**: Provides web application firewall protection
 - **Route53**: Manages DNS records
 - **ACM**: Handles SSL/TLS certificates
+- **Amazon Rekognition**: Shown in diagram for avatar image validation, but processing is handled by Laravel backend (not part of this infrastructure)
 
 ## Prerequisites
 
@@ -122,6 +123,8 @@ The S3 bucket (`caringaldevops`) is organized with the following structure:
    - Purpose: Stores user avatar images
    - Storage: Immediate transition to Intelligent-Tiering
    - Access: Through CloudFront only
+    - Note: While Amazon Rekognition is shown in the infrastructure diagram, image validation 
+     is processed by Laravel backend before storing in this directory
 
 2. `/react-build/`
    - Purpose: Contains Student Record System React application build files
