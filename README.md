@@ -25,6 +25,14 @@ The infrastructure consists of:
 - Route53 for DNS management (martincaringal.co.nz)
 - ACM for SSL/TLS certificates
 
+
+
+### Infrastructure Diagram
+
+![AWS Infrastructure Diagram](frontend-architecture.png)
+
+
+
 ### Key Components
 - **CloudFront Distribution**: Serves the React-based Student Record System
 - **S3 Bucket**: Stores static files and student-related media content
@@ -474,7 +482,7 @@ terraform apply
 ### Contact Information
 
 For support and assistance:
-- Technical Issues: martin.caringal@outlook.com
+- Technical Issues: lawrencecaringal5@gmail.com
 - Infrastructure Support: [GitHub Issues](https://github.com/CaringalML/Student-Record-System-React-AWS-Infrastructure/issues)
 
 ## Change Log
