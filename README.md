@@ -1,54 +1,378 @@
 # AWS Infrastructure with CloudFront, S3, and WAF
 
-[Previous content remains the same until Troubleshooting section, then adds:]
+## Table of Contents
+1. [Architecture Overview](#architecture-overview)
+2. [Prerequisites](#prerequisites)
+3. [Quick Start](#quick-start)
+4. [Component Details](#component-details)
+5. [Security Features](#security-features)
+6. [Infrastructure Management](#infrastructure-management)
+7. [Monitoring and Operations](#monitoring-and-operations)
+8. [Troubleshooting](#troubleshooting)
+9. [Development](#development)
+10. [Support](#support)
 
-## Troubleshooting
+## Architecture Overview
 
-Common issues and solutions:
+The infrastructure consists of:
+- CloudFront distribution for content delivery
+- S3 bucket for storage with intelligent tiering
+- WAF for security
+- Route53 for DNS management
+- ACM for SSL/TLS certificates
 
-1. **CloudFront 403 Errors**:
-   - Check S3 bucket policy
+### Key Components
+- **CloudFront Distribution**: Serves the React application and media files
+- **S3 Bucket**: Stores static files and media content
+- **WAF**: Provides web application firewall protection
+- **Route53**: Manages DNS records
+- **ACM**: Handles SSL/TLS certificates
+
+## Prerequisites
+
+- AWS Account
+- Terraform ≥ 1.0.0
+- AWS CLI configured with appropriate credentials
+- Domain registered in Route53
+
+## Quick Start
+
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/yourrepo.git
+cd yourrepo
+```
+
+2. Initialize Terraform:
+```bash
+terraform init
+```
+
+3. Review and modify variables in `variables.tf`:
+```hcl
+variable "domain_name" {
+  description = "Custom domain name"
+  default     = "enrollment.martincaringal.co.nz"
+}
+
+variable "environment" {
+  description = "Environment name"
+  default     = "production"
+}
+
+variable "aws_region" {
+  description = "AWS region"
+  default     = "ap-southeast-2"
+}
+```
+
+4. Deploy the infrastructure:
+```bash
+terraform plan
+terraform apply
+```
+
+## Component Details
+
+### CloudFront Distribution
+
+1. **Basic Configuration**
+   - IPv6 enabled
+   - Price class: All edge locations
+   - HTTPS enforcement
+   - TLSv1.2_2021 minimum protocol version
+
+2. **Origin Configuration**
+   - React App origin (/react-build)
+   - Media files origin
+   - Origin Access Control (OAC) implementation
+
+3. **CloudFront Function**
+```javascript
+function handler(event) {
+    var request = event.request;
+    var uri = request.uri;
+    
+    // Check whether the URI is missing a file extension
+    if (!uri.includes('.')) {
+        request.uri = '/index.html';
+    }
+    
+    return request;
+}
+```
+
+### S3 Bucket Structure
+
+The S3 bucket (`caringaldevops`) is organized with the following structure:
+
+1. `/avatar_images/`
+   - Purpose: Stores user avatar images
+   - Storage: Immediate transition to Intelligent-Tiering
+   - Access: Through CloudFront only
+
+2. `/react-build/`
+   - Purpose: Contains React application build files
+   - Access: Served as main application through CloudFront
+
+3. `/student_files/`
+   - Purpose: Stores student-related files
+   - Storage: Immediate transition to Intelligent-Tiering
+   - Access: Through CloudFront only
+
+### WAF Configuration Details
+
+The WAF implementation includes:
+
+1. AWS Managed Rules - Common Rule Set
+   - Priority: 1
+   - Vendor: AWS
+   - Metrics Enabled: Yes
+
+2. AWS Managed Rules - Known Bad Inputs
+   - Priority: 2
+   - Vendor: AWS
+   - Metrics Enabled: Yes
+
+3. Rate Limiting Rule
+   - Priority: 3
+   - Limit: 2000 requests per IP
+   - Action: Block
+   - Metrics Enabled: Yes
+
+   ### S3 Storage Management
+
+1. **Intelligent Tiering Configuration**
+   ```hcl
+   # Archive tier configuration
+   tiering {
+     access_tier = "ARCHIVE_ACCESS"
+     days        = 90
+   }
+
+   # Deep archive tier configuration
+   tiering {
+     access_tier = "DEEP_ARCHIVE_ACCESS"
+     days        = 365
+   }
+   ```
+
+2. **Lifecycle Rules**
+   - Avatar Images: Immediate transition to Intelligent-Tiering
+   - Student Files: Immediate transition to Intelligent-Tiering
+   - Cleanup: Abort incomplete multipart uploads after 7 days
+
+3. **Access Control**
+   - Public access blocked
+   - CloudFront OAC access only
+   - CORS configuration for API access
+
+## Security Features
+
+### Access Control
+1. **S3 Bucket Security**
+```hcl
+resource "aws_s3_bucket_public_access_block" "storage_bucket" {
+  bucket = aws_s3_bucket.storage_bucket.id
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+```
+
+2. **CloudFront Security**
+   - Origin Access Control (OAC)
+   - HTTPS enforcement
+   - TLSv1.2_2021 minimum protocol
+   - Custom SSL certificate
+
+3. **WAF Protection**
+   - Rate limiting (2000 requests/IP)
+   - AWS managed rule sets
+   - Custom security rules
+   - Metrics and logging enabled
+
+## Infrastructure Management
+
+### Resource Organization
+```
+.
+├── main.tf                 # CloudFront and core configurations
+├── s3.tf                  # S3 bucket configurations
+├── waf.tf                 # WAF configurations
+├── variables.tf           # Variable definitions
+└── README.md             # Documentation
+```
+
+### Domain and SSL Management
+
+1. **Route53 Configuration**
+```hcl
+resource "aws_route53_record" "cloudfront" {
+  zone_id = data.aws_route53_zone.main.zone_id
+  name    = var.domain_name
+  type    = "A"
+
+  alias {
+    name                   = aws_cloudfront_distribution.s3_distribution.domain_name
+    zone_id                = aws_cloudfront_distribution.s3_distribution.hosted_zone_id
+    evaluate_target_health = false
+  }
+}
+```
+
+2. **SSL Certificate**
+   - Automatic validation through Route53
+   - Auto-renewal enabled
+   - us-east-1 region requirement
+
+### Deployment Procedures
+
+1. **Initial Deployment**
+```bash
+# Initialize Terraform
+terraform init
+
+# Plan changes
+terraform plan -out=tfplan
+
+# Apply changes
+terraform apply tfplan
+```
+
+2. **Updates and Changes**
+```bash
+# Update React application
+npm run build
+aws s3 sync build/ s3://caringaldevops/react-build/
+
+# Invalidate CloudFront cache
+aws cloudfront create-invalidation --distribution-id ${DISTRIBUTION_ID} --paths "/*"
+```
+
+## Monitoring and Operations
+
+### CloudWatch Monitoring
+
+1. **Metrics Available**
+   - CloudFront error rates
+   - WAF blocked requests
+   - S3 bucket operations
+   - Origin latency
+
+2. **Suggested Alarms**
+```hcl
+resource "aws_cloudwatch_metric_alarm" "error_rate" {
+  alarm_name          = "${var.environment}-high-error-rate"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = "2"
+  metric_name        = "5xxErrorRate"
+  namespace          = "AWS/CloudFront"
+  period             = "300"
+  statistic          = "Average"
+  threshold          = "5"
+}
+```
+
+### Logging Configuration
+
+1. **WAF Logging**
+   - Enabled for all rules
+   - Sampled requests
+   - Metrics enabled
+
+2. **CloudFront Logging**
+   - Access logs
+   - Error logs
+   - Cache statistics
+
+### Maintenance Tasks
+
+1. **Regular Checks**
+   - SSL certificate validity
+   - WAF rule effectiveness
+   - S3 storage metrics
+   - CloudFront cache hit ratios
+
+2. **Periodic Tasks**
+   - Review WAF rules
+   - Update security patches
+   - Check cost optimization
+   - Validate backup procedures
+
+
+   ## Troubleshooting
+
+### Common Issues and Solutions
+
+1. **CloudFront 403 Errors**
+   - Check S3 bucket policy configuration:
+   ```hcl
+   {
+     "Version": "2012-10-17",
+     "Statement": [{
+       "Sid": "AllowCloudFrontServicePrincipal",
+       "Effect": "Allow",
+       "Principal": {
+         "Service": "cloudfront.amazonaws.com"
+       },
+       "Action": "s3:GetObject",
+       "Resource": "arn:aws:s3:::caringaldevops/*",
+       "Condition": {
+         "StringEquals": {
+           "AWS:SourceArn": "[DISTRIBUTION_ARN]"
+         }
+       }
+     }]
+   }
+   ```
    - Verify OAC configuration
-   - Ensure WAF rules aren't blocking legitimate traffic
-   - Verify function associations are correct
+   - Check WAF rules for false positives
+   - Validate function associations
 
-2. **SSL Certificate Issues**:
-   - Ensure DNS validation records exist
-   - Verify certificate region (must be us-east-1)
-   - Check certificate renewal status
+2. **SSL Certificate Issues**
+   - Verify ACM certificate region (must be us-east-1)
+   - Check DNS validation records:
+   ```bash
+   aws acm list-certificates --region us-east-1
+   aws acm describe-certificate --certificate-arn [CERT_ARN] --region us-east-1
+   ```
    - Confirm domain ownership
+   - Review certificate renewal status
 
-3. **S3 Access Issues**:
-   - Check bucket policy
-   - Verify CloudFront distribution settings
-   - Confirm IAM roles and permissions
-   - Check S3 bucket versioning status
-
-4. **WAF Blocking Legitimate Traffic**:
-   - Review rate limiting thresholds
-   - Check WAF logs for false positives
-   - Verify IP reputation lists
-   - Adjust rule group settings
+3. **S3 Access Issues**
+   - Verify bucket policy permissions
+   - Check CloudFront origin path configuration
+   - Validate IAM roles and permissions
+   - Confirm CORS settings if applicable
 
 ## Development Workflow
 
-1. **Local Development**:
-```bash
-# Clone repository
-git clone https://github.com/yourusername/yourrepo.git
+### Local Development Setup
 
+1. **Environment Setup**
+```bash
 # Install required tools
-brew install terraform
-brew install aws-cli
+brew install terraform awscli
 
 # Configure AWS credentials
 aws configure
 
-# Initialize Terraform workspace
-terraform init
+# Clone repository
+git clone https://github.com/yourusername/yourrepo.git
+cd yourrepo
 ```
 
-2. **Testing Changes**:
+2. **Development Best Practices**
+   - Use terraform workspaces for different environments
+   - Keep sensitive variables in terraform.tfvars
+   - Use consistent naming conventions
+   - Document all changes
+
+### Testing and Validation
+
+1. **Infrastructure Testing**
 ```bash
 # Validate Terraform configurations
 terraform validate
@@ -56,182 +380,125 @@ terraform validate
 # Check formatting
 terraform fmt
 
-# Review planned changes
+# Run security scan
+checkov -d .
+
+# Plan changes
 terraform plan
 ```
 
-3. **CI/CD Integration**:
-- GitHub Actions workflow examples
-- Deployment validation steps
-- Rollback procedures
+2. **Application Deployment Testing**
+```bash
+# Build React application
+npm run build
+
+# Test S3 upload
+aws s3 sync build/ s3://caringaldevops/react-build/ --dryrun
+
+# Verify CloudFront distribution
+curl -I https://[CLOUDFRONT_DOMAIN]
+```
 
 ## Infrastructure Updates
 
-### Breaking Changes
+### Making Changes
 
-The following changes require careful consideration:
-1. S3 bucket name changes
-2. CloudFront distribution updates
-3. WAF rule modifications
-4. Route53 record changes
-
-### Update Procedures
-
-1. **Terraform State Management**:
+1. **Safe Update Process**
 ```bash
-# Backup Terraform state
+# Backup current state
 terraform state pull > backup.tfstate
 
-# Import existing resources
-terraform import aws_cloudfront_distribution.s3_distribution DISTRIBUTION_ID
+# Plan changes
+terraform plan -out=tfplan
+
+# Review changes carefully
+terraform show tfplan
+
+# Apply changes
+terraform apply tfplan
 ```
 
-2. **Emergency Rollback**:
+2. **Emergency Rollback**
 ```bash
-# Revert to previous state
-terraform plan -target=aws_cloudfront_distribution.s3_distribution -out=rollback.plan
-terraform apply rollback.plan
+# Restore from backup
+terraform state push backup.tfstate
+
+# Reapply previous configuration
+terraform apply
 ```
 
-## Monitoring and Alerts
+### Version Control
 
-### CloudWatch Alarms
+1. **Branching Strategy**
+   - main: Production-ready infrastructure
+   - develop: Development changes
+   - feature/*: New features
+   - hotfix/*: Emergency fixes
 
-1. **Error Rate Monitoring**:
-```hcl
-resource "aws_cloudwatch_metric_alarm" "error_rate" {
-  alarm_name = "high-error-rate"
-  comparison_operator = "GreaterThanThreshold"
-  evaluation_periods = "2"
-  metric_name = "5xxErrorRate"
-  namespace = "AWS/CloudFront"
-  period = "300"
-  statistic = "Average"
-  threshold = "5"
-  alarm_description = "This metric monitors error rates"
-  alarm_actions = [aws_sns_topic.alerts.arn]
-}
-```
-
-2. **Cost Monitoring**:
-- Budget alerts configuration
-- Resource utilization tracking
-- Anomaly detection
-
-### Logging
-
-1. **Log Analysis**:
-- CloudWatch Logs Insights queries
-- Access pattern analysis
-- Security event monitoring
-
-2. **Retention Policies**:
-- Log rotation settings
-- Archival procedures
-- Compliance requirements
-
-## Disaster Recovery
-
-### Backup Procedures
-
-1. **S3 Data**:
-- Cross-region replication
-- Versioning configuration
-- Backup retention policies
-
-2. **Infrastructure Configuration**:
-- Terraform state backup
-- Configuration version control
-- Documentation maintenance
-
-### Recovery Procedures
-
-1. **Service Restoration**:
-- Priority order for recovery
-- Communication procedures
-- Validation checkpoints
-
-2. **Data Recovery**:
-- S3 version restoration
-- Cross-region failover
-- Data integrity verification
-
-## Performance Optimization
-
-### CloudFront Settings
-
-1. **Cache Optimization**:
-- Cache behavior tuning
-- Origin response optimization
-- Compression settings
-
-2. **Origin Settings**:
-- Keep-alive timeout
-- Origin timeout
-- Origin response timeout
-
-### S3 Performance
-
-1. **Access Patterns**:
-- Prefix optimization
-- Partitioning strategy
-- Request rate management
-
-## Compliance and Security
-
-### Audit Procedures
-
-1. **Regular Audits**:
-- Security group review
-- IAM permission audit
-- SSL certificate monitoring
-- WAF rule validation
-
-2. **Compliance Checks**:
-- Resource tagging compliance
-- Encryption verification
-- Access logging validation
-
-### Security Procedures
-
-1. **Incident Response**:
-- Security event identification
-- Response procedures
-- Escalation matrix
-- Post-incident review
+2. **Change Documentation**
+   - Update README for major changes
+   - Document all variables
+   - Keep changelog updated
 
 ## Support and Maintenance
 
 ### Regular Maintenance
 
-1. **Weekly Tasks**:
-- Log review
-- Performance monitoring
-- Security updates
+1. **Daily Tasks**
+   - Monitor WAF blocks
+   - Check error rates
+   - Verify backup completion
 
-2. **Monthly Tasks**:
-- Infrastructure cost review
-- Resource optimization
-- Backup verification
+2. **Weekly Tasks**
+   - Review security updates
+   - Check cost optimization
+   - Analyze performance metrics
+
+3. **Monthly Tasks**
+   - Security assessment
+   - Resource optimization
+   - Compliance review
 
 ### Contact Information
 
-For support:
+For support and assistance:
 - Technical Issues: devops@example.com
 - Security Concerns: security@example.com
 - Emergency Contact: oncall@example.com
+
+## Change Log
+
+### [1.0.0] - 2024-01-01
+- Initial infrastructure setup
+- Basic CloudFront distribution
+- S3 bucket configuration
+- WAF implementation
+
+### [1.1.0] - 2024-02-01
+- Added intelligent tiering
+- Implemented lifecycle policies
+- Enhanced security features
 
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## Changelog
+---
 
-### [1.0.0] - 2024-01-01
-- Initial release
-- Basic infrastructure setup
+## Variable Reference
 
-### [1.1.0] - 2024-02-01
-- Added WAF configuration
-- Improved logging
-- Enhanced security features
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| aws_region | AWS Region | string | ap-southeast-2 | no |
+| environment | Environment name | string | production | no |
+| domain_name | Custom domain name | string | enrollment.martincaringal.co.nz | no |
+| s3_bucket_name | S3 bucket name | string | caringaldevops | no |
+
+## Tags
+
+Primary tags used across resources:
+```hcl
+tags = {
+  Environment = var.environment
+}
+```
