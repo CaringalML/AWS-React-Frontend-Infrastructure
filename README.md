@@ -1,4 +1,8 @@
-# AWS Infrastructure with CloudFront, S3, and WAF
+# AWS Infrastructure for Student Record System
+
+This repository contains Terraform configurations for deploying a secure and scalable web infrastructure on AWS, designed to serve a Student Record System built with React.
+
+Repository: [CaringalML/Student-Record-System-React-AWS-Infrastructure](https://github.com/CaringalML/Student-Record-System-React-AWS-Infrastructure)
 
 ## Table of Contents
 1. [Architecture Overview](#architecture-overview)
@@ -18,12 +22,12 @@ The infrastructure consists of:
 - CloudFront distribution for content delivery
 - S3 bucket for storage with intelligent tiering
 - WAF for security
-- Route53 for DNS management
+- Route53 for DNS management (martincaringal.co.nz)
 - ACM for SSL/TLS certificates
 
 ### Key Components
-- **CloudFront Distribution**: Serves the React application and media files
-- **S3 Bucket**: Stores static files and media content
+- **CloudFront Distribution**: Serves the React-based Student Record System
+- **S3 Bucket**: Stores static files and student-related media content
 - **WAF**: Provides web application firewall protection
 - **Route53**: Manages DNS records
 - **ACM**: Handles SSL/TLS certificates
@@ -33,14 +37,14 @@ The infrastructure consists of:
 - AWS Account
 - Terraform ≥ 1.0.0
 - AWS CLI configured with appropriate credentials
-- Domain registered in Route53
+- Domain registered in Route53 (martincaringal.co.nz)
 
 ## Quick Start
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/yourrepo.git
-cd yourrepo
+git clone https://github.com/CaringalML/Student-Record-System-React-AWS-Infrastructure.git
+cd Student-Record-System-React-AWS-Infrastructure
 ```
 
 2. Initialize Terraform:
@@ -112,11 +116,11 @@ The S3 bucket (`caringaldevops`) is organized with the following structure:
    - Access: Through CloudFront only
 
 2. `/react-build/`
-   - Purpose: Contains React application build files
+   - Purpose: Contains Student Record System React application build files
    - Access: Served as main application through CloudFront
 
 3. `/student_files/`
-   - Purpose: Stores student-related files
+   - Purpose: Stores student-related files and documents
    - Storage: Immediate transition to Intelligent-Tiering
    - Access: Through CloudFront only
 
@@ -158,14 +162,14 @@ The WAF implementation includes:
    ```
 
 2. **Lifecycle Rules**
-   - Avatar Images: Immediate transition to Intelligent-Tiering
-   - Student Files: Immediate transition to Intelligent-Tiering
+   - Avatar Images: Immediate transition to Intelligent-Tiering for student photos
+   - Student Files: Immediate transition to Intelligent-Tiering for academic records
    - Cleanup: Abort incomplete multipart uploads after 7 days
 
 3. **Access Control**
-   - Public access blocked
+   - Public access blocked for student data security
    - CloudFront OAC access only
-   - CORS configuration for API access
+   - CORS configuration for Student Record System API access
 
 ## Security Features
 
@@ -182,22 +186,22 @@ resource "aws_s3_bucket_public_access_block" "storage_bucket" {
 ```
 
 2. **CloudFront Security**
-   - Origin Access Control (OAC)
-   - HTTPS enforcement
+   - Origin Access Control (OAC) for secure file access
+   - HTTPS enforcement for student data protection
    - TLSv1.2_2021 minimum protocol
-   - Custom SSL certificate
+   - Custom SSL certificate for enrollment.martincaringal.co.nz
 
 3. **WAF Protection**
    - Rate limiting (2000 requests/IP)
    - AWS managed rule sets
-   - Custom security rules
-   - Metrics and logging enabled
+   - Custom security rules for student record protection
+   - Metrics and logging enabled for audit purposes
 
 ## Infrastructure Management
 
 ### Resource Organization
 ```
-.
+Student-Record-System-React-AWS-Infrastructure/
 ├── main.tf                 # CloudFront and core configurations
 ├── s3.tf                  # S3 bucket configurations
 ├── waf.tf                 # WAF configurations
@@ -224,8 +228,8 @@ resource "aws_route53_record" "cloudfront" {
 
 2. **SSL Certificate**
    - Automatic validation through Route53
-   - Auto-renewal enabled
-   - us-east-1 region requirement
+   - Auto-renewal enabled for continuous security
+   - us-east-1 region requirement for CloudFront compatibility
 
 ### Deployment Procedures
 
@@ -243,7 +247,7 @@ terraform apply tfplan
 
 2. **Updates and Changes**
 ```bash
-# Update React application
+# Update Student Record System React application
 npm run build
 aws s3 sync build/ s3://caringaldevops/react-build/
 
@@ -258,8 +262,8 @@ aws cloudfront create-invalidation --distribution-id ${DISTRIBUTION_ID} --paths 
 1. **Metrics Available**
    - CloudFront error rates
    - WAF blocked requests
-   - S3 bucket operations
-   - Origin latency
+   - S3 bucket operations for student records
+   - Origin latency monitoring
 
 2. **Suggested Alarms**
 ```hcl
@@ -278,28 +282,28 @@ resource "aws_cloudwatch_metric_alarm" "error_rate" {
 ### Logging Configuration
 
 1. **WAF Logging**
-   - Enabled for all rules
-   - Sampled requests
-   - Metrics enabled
+   - Security event tracking
+   - Sampled requests for analysis
+   - Metrics enabled for threat detection
 
 2. **CloudFront Logging**
-   - Access logs
-   - Error logs
-   - Cache statistics
+   - Access logs for audit trails
+   - Error logs for troubleshooting
+   - Cache statistics for performance optimization
 
 ### Maintenance Tasks
 
 1. **Regular Checks**
-   - SSL certificate validity
-   - WAF rule effectiveness
-   - S3 storage metrics
-   - CloudFront cache hit ratios
+   - SSL certificate validation
+   - WAF rule effectiveness review
+   - S3 storage metrics monitoring
+   - CloudFront cache performance analysis
 
 2. **Periodic Tasks**
-   - Review WAF rules
-   - Update security patches
-   - Check cost optimization
-   - Validate backup procedures
+   - WAF security rule updates
+   - Security patch management
+   - Cost optimization reviews
+   - Backup verification for student records
 
 
    ## Troubleshooting
@@ -317,8 +321,16 @@ resource "aws_cloudwatch_metric_alarm" "error_rate" {
        "Principal": {
          "Service": "cloudfront.amazonaws.com"
        },
-       "Action": "s3:GetObject",
-       "Resource": "arn:aws:s3:::caringaldevops/*",
+       "Action": [
+         "s3:GetObject",
+         "s3:PutObject",
+         "s3:DeleteObject",
+         "s3:ListBucket"
+       ],
+       "Resource": [
+         "arn:aws:s3:::caringaldevops/*",
+         "arn:aws:s3:::caringaldevops"
+       ],
        "Condition": {
          "StringEquals": {
            "AWS:SourceArn": "[DISTRIBUTION_ARN]"
@@ -327,13 +339,13 @@ resource "aws_cloudwatch_metric_alarm" "error_rate" {
      }]
    }
    ```
-   - Verify OAC configuration
+   - Verify OAC configuration for student file access
    - Check WAF rules for false positives
-   - Validate function associations
+   - Validate function associations for React routing
 
 2. **SSL Certificate Issues**
    - Verify ACM certificate region (must be us-east-1)
-   - Check DNS validation records:
+   - Check DNS validation records for martincaringal.co.nz:
    ```bash
    aws acm list-certificates --region us-east-1
    aws acm describe-certificate --certificate-arn [CERT_ARN] --region us-east-1
@@ -342,10 +354,10 @@ resource "aws_cloudwatch_metric_alarm" "error_rate" {
    - Review certificate renewal status
 
 3. **S3 Access Issues**
-   - Verify bucket policy permissions
-   - Check CloudFront origin path configuration
+   - Verify bucket policy permissions for student files
+   - Check CloudFront origin path configurations for /react-build and media folders
    - Validate IAM roles and permissions
-   - Confirm CORS settings if applicable
+   - Confirm CORS settings for API interactions
 
 ## Development Workflow
 
@@ -360,15 +372,15 @@ brew install terraform awscli
 aws configure
 
 # Clone repository
-git clone https://github.com/yourusername/yourrepo.git
-cd yourrepo
+git clone https://github.com/CaringalML/Student-Record-System-React-AWS-Infrastructure.git
+cd Student-Record-System-React-AWS-Infrastructure
 ```
 
 2. **Development Best Practices**
-   - Use terraform workspaces for different environments
+   - Use terraform workspaces for different environments (prod/staging)
    - Keep sensitive variables in terraform.tfvars
-   - Use consistent naming conventions
-   - Document all changes
+   - Use consistent naming conventions for student record resources
+   - Document all changes affecting student data handling
 
 ### Testing and Validation
 
@@ -396,7 +408,7 @@ npm run build
 aws s3 sync build/ s3://caringaldevops/react-build/ --dryrun
 
 # Verify CloudFront distribution
-curl -I https://[CLOUDFRONT_DOMAIN]
+curl -I https://enrollment.martincaringal.co.nz
 ```
 
 ## Infrastructure Updates
@@ -430,41 +442,40 @@ terraform apply
 ### Version Control
 
 1. **Branching Strategy**
-   - main: Production-ready infrastructure
-   - develop: Development changes
-   - feature/*: New features
+   - main: Production infrastructure
+   - develop: Development infrastructure changes
+   - feature/*: New infrastructure features
    - hotfix/*: Emergency fixes
 
 2. **Change Documentation**
-   - Update README for major changes
-   - Document all variables
-   - Keep changelog updated
+   - Update README for major infrastructure changes
+   - Document all variables and their purposes
+   - Maintain changelog for infrastructure updates
 
 ## Support and Maintenance
 
 ### Regular Maintenance
 
 1. **Daily Tasks**
-   - Monitor WAF blocks
-   - Check error rates
-   - Verify backup completion
+   - Monitor WAF blocks and security events
+   - Check student record access patterns
+   - Verify backup completion for student data
 
 2. **Weekly Tasks**
    - Review security updates
-   - Check cost optimization
+   - Optimize cost for storage and distribution
    - Analyze performance metrics
 
 3. **Monthly Tasks**
-   - Security assessment
-   - Resource optimization
-   - Compliance review
+   - Security assessment of student data protection
+   - Resource optimization review
+   - Compliance verification for educational records
 
 ### Contact Information
 
 For support and assistance:
-- Technical Issues: devops@example.com
-- Security Concerns: security@example.com
-- Emergency Contact: oncall@example.com
+- Technical Issues: martin.caringal@outlook.com
+- Infrastructure Support: [GitHub Issues](https://github.com/CaringalML/Student-Record-System-React-AWS-Infrastructure/issues)
 
 ## Change Log
 
@@ -475,9 +486,9 @@ For support and assistance:
 - WAF implementation
 
 ### [1.1.0] - 2024-02-01
-- Added intelligent tiering
-- Implemented lifecycle policies
-- Enhanced security features
+- Added intelligent tiering for cost optimization
+- Implemented lifecycle policies for student files
+- Enhanced security features for student data protection
 
 ## License
 
@@ -500,5 +511,8 @@ Primary tags used across resources:
 ```hcl
 tags = {
   Environment = var.environment
+  Project     = "Student-Record-System"
+  Owner       = "Martin Caringal"
+  ManagedBy   = "Terraform"
 }
 ```
