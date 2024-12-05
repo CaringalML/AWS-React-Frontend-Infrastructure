@@ -4,6 +4,12 @@ This repository contains Terraform configurations for deploying a secure and sca
 
 Repository: [CaringalML/Student-Record-System-React-AWS-Infrastructure](https://github.com/CaringalML/Student-Record-System-React-AWS-Infrastructure)
 
+
+Related Repositories:
+
+Frontend Web Application: CaringalML/Student-Record-System-React
+
+
 ## Table of Contents
 1. [Architecture Overview](#architecture-overview)
 2. [Prerequisites](#prerequisites)
