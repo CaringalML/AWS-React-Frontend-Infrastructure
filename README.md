@@ -7,6 +7,7 @@ Repository: [CaringalML/Student-Record-System-React-AWS-Infrastructure](https://
 Related Repositories:
 
 - Frontend Web Application: [CaringalML/Student-Record-System-React](https://github.com/CaringalML/Student-Record-System-React)
+- Backend Web Application: [CaringalML/Student-Record-System-Laravel-API](https://github.com/CaringalML/Student-Record-System-Laravel-API)
 
 ## Table of Contents
 1. [Architecture Overview](#architecture-overview)
