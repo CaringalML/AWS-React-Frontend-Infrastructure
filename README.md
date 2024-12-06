@@ -2,7 +2,6 @@
 
 This repository contains Terraform configurations for deploying a secure and scalable web infrastructure on AWS, designed to serve a Student Record System built with React.
 
-Repository: [CaringalML/AWS-React-Frontend-Infrastructure](https://github.com/CaringalML/AWS-React-Frontend-Infrastructure)
 
 Related Repositories:
 
