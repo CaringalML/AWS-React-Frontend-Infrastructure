@@ -1,4 +1,4 @@
-# AWS Infrastructure for Student Record System
+# AWS Infrastructure for Student Enrollment System
 
 This repository contains Terraform configurations for deploying a secure and scalable web infrastructure on AWS, designed to serve a Student Record System built with React.
 
