@@ -8,6 +8,7 @@ Related Repositories:
 
 - Frontend Web Application: [CaringalML/Student-Enrollment-System-React](https://github.com/CaringalML/Student-Enrollment-System-React)
 - Backend Web Application: [CaringalML/Student-Enrollment-System-Laravel-API](https://github.com/CaringalML/Student-Enrollment-System-Laravel-API)
+- Backend Infrastructure: [CaringalML/AWS-Laravel-RESTful-API-Backend-Infrastructure](https://github.com/CaringalML/AWS-Laravel-RESTful-API-Backend-Infrastructure)
 
 ## Table of Contents
 1. [Architecture Overview](#architecture-overview)
