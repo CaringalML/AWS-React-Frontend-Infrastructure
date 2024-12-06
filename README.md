@@ -2,12 +2,12 @@
 
 This repository contains Terraform configurations for deploying a secure and scalable web infrastructure on AWS, designed to serve a Student Record System built with React.
 
-Repository: [CaringalML/Student-Record-System-React-AWS-Infrastructure](https://github.com/CaringalML/Student-Record-System-React-AWS-Infrastructure)
+Repository: [CaringalML/AWS-React-Frontend-Infrastructure](https://github.com/CaringalML/AWS-React-Frontend-Infrastructure)
 
 Related Repositories:
 
-- Frontend Web Application: [CaringalML/Student-Record-System-React](https://github.com/CaringalML/Student-Record-System-React)
-- Backend Web Application: [CaringalML/Student-Record-System-Laravel-API](https://github.com/CaringalML/Student-Record-System-Laravel-API)
+- Frontend Web Application: [CaringalML/Student-Enrollment-System-React](https://github.com/CaringalML/Student-Enrollment-System-React)
+- Backend Web Application: [CaringalML/Student-Enrollment-System-Laravel-API](https://github.com/CaringalML/Student-Enrollment-System-Laravel-API)
 
 ## Table of Contents
 1. [Architecture Overview](#architecture-overview)
@@ -53,8 +53,8 @@ The infrastructure consists of:
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/CaringalML/Student-Record-System-React-AWS-Infrastructure.git
-cd Student-Record-System-React-AWS-Infrastructure
+git clone https://github.com/CaringalML/AWS-React-Frontend-Infrastructure.git
+cd AWS-React-Frontend-Infrastructure
 ```
 
 2. Initialize Terraform:
@@ -213,7 +213,7 @@ resource "aws_s3_bucket_public_access_block" "storage_bucket" {
 
 ### Resource Organization
 ```
-Student-Record-System-React-AWS-Infrastructure/
+AWS-React-Frontend-Infrastructure/
 ├── cloudfront.tf         # CloudFront and function configurations
 ├── s3.tf                # S3 bucket configurations
 ├── waf.tf               # WAF configurations
@@ -339,8 +339,8 @@ brew install terraform awscli
 aws configure
 
 # Clone repository
-git clone https://github.com/CaringalML/Student-Record-System-React-AWS-Infrastructure.git
-cd Student-Record-System-React-AWS-Infrastructure
+git clone https://github.com/CaringalML/AWS-React-Frontend-Infrastructure.git
+cd AWS-React-Frontend-Infrastructure
 ```
 
 2. **Development Best Practices**
@@ -401,7 +401,7 @@ curl -I https://enrollment.martincaringal.co.nz
 
 For support and assistance:
 - Technical Issues: lawrencecaringal5@gmail.com
-- Infrastructure Support: [GitHub Issues](https://github.com/CaringalML/Student-Record-System-React-AWS-Infrastructure/issues)
+- Infrastructure Support: [GitHub Issues](https://github.com/CaringalML/AWS-React-Frontend-Infrastructure/issues)
 
 ## Variable Reference
 
@@ -418,7 +418,7 @@ Primary tags used across resources:
 ```hcl
 tags = {
   Environment = var.environment
-  Project     = "Student-Record-System"
+  Project     = "Student-Enrollment-System"
   Owner       = "Martin Caringal"
   ManagedBy   = "Terraform"
 }
