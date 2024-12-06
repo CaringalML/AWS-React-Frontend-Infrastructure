@@ -1,0 +1,46 @@
+flowchart LR
+    user(("End User"))
+    dns["Route 53 enrollment.martincaringal.co.nz"]
+    
+    subgraph WAF["AWS WAF"]
+        waf_rules["Rules: 1. Common Rule Set 2. Known Bad Inputs 3. Rate Limit (2000/IP)"]
+    end
+    
+    subgraph CDN["CloudFront Distribution"]
+        cf[("CloudFront PriceClass_All")]
+        cf_function["CloudFront Function (URL Rewrite for React)"]
+    end
+    
+    subgraph Certificate["ACM"]
+        acm["SSL Certificate TLSv1.2_2021"]
+    end
+    
+    subgraph Storage["S3 Bucket (caringaldevops)"]
+        react["react-build/ (React App)"]
+        avatar["avatar_images/ (Intelligent-Tiering)"]
+        files["student_files/ (Intelligent-Tiering)"]
+    end
+    
+    subgraph AI["Image Processing"]
+        rekognition["Amazon Rekognition Image Analysis"]
+    end
+    
+    user --> dns
+    dns --> cf
+    WAF --> cf
+    acm --> cf
+    cf_function --> cf
+    cf --> react
+    cf --> avatar
+    cf --> files
+    avatar <--> rekognition
+    
+    classDef aws fill:#FF9900,stroke:#232F3E,stroke-width:2px,color:white;
+    classDef security fill:#DD3522,stroke:#232F3E,stroke-width:2px,color:white;
+    classDef ai fill:#3B48CC,stroke:#232F3E,stroke-width:2px,color:white;
+    classDef user fill:#85BBF0,stroke:#232F3E,stroke-width:2px,color:black;
+    
+    class cf,dns,react,avatar,files aws;
+    class WAF,acm security;
+    class rekognition ai;
+    class user user;
