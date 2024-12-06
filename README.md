@@ -359,9 +359,6 @@ terraform validate
 # Check formatting
 terraform fmt
 
-# Run security scan
-checkov -d .
-
 # Plan changes
 terraform plan
 ```
