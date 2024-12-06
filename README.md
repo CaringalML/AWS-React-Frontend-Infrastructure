@@ -369,10 +369,10 @@ terraform plan
 npm run build
 
 # Test S3 upload
-aws s3 sync build/ s3://caringaldevops/react-build/ --dryrun
+aws s3 sync ./build s3://caringaldevops/react-build --delete
 
 # Verify CloudFront distribution
-curl -I https://enrollment.martincaringal.co.nz
+Invoke-WebRequest -Uri "https://enrollment.martincaringal.co.nz" -Method Head
 ```
 
 ## Support and Maintenance
