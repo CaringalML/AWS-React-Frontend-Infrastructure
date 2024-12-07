@@ -631,6 +631,96 @@ For support and assistance:
 - ✅ WAF protection active
 
 
+# Infrastructure Cost Estimation (USD)
+
+This provides an estimated monthly cost breakdown.
+
+## Cost Breakdown by Service
+
+### 1. Amazon S3 Storage (Sydney Region - ap-southeast-2)
+- **Intelligent-Tiering** (implemented for avatar_images/ and student_files/):
+  - Base cost: $0.023 USD per GB per month
+  - Monitoring: $0.0025 USD per 1,000 objects
+  - Archive Access (90 days): $0.012 USD per GB
+  - Deep Archive (365 days): $0.003 USD per GB
+- **Estimated Monthly Cost**: $15-25 USD
+  - *Based on immediate Intelligent-Tiering transition*
+
+### 2. CloudFront Distribution
+- **Configuration**: PriceClass_All (All Edge Locations)
+- **Cache Behaviors**:
+  - React App (default): 1 hour default TTL
+  - Avatar images: 1 hour default TTL
+  - Student files: 1 hour default TTL
+- **Function**: URI rewrite for React Router
+- **Estimated Monthly Cost**: $35-50 USD
+  - *Higher estimate due to PriceClass_All*
+
+### 3. WAF Implementation
+- **Configured Rules**:
+  1. AWSManagedRulesCommonRuleSet
+  2. AWSManagedRulesKnownBadInputsRuleSet
+  3. Rate Limiting (2000 requests per IP)
+- **Monthly Cost**:
+  - Base WAF cost: $5.00 USD
+  - Rule evaluation: $0.60 USD per 1M requests
+  - Managed Rules: $1.00 per rule group
+- **Estimated Monthly Cost**: $12-18 USD
+
+### 4. Route 53 & ACM
+- **Hosted Zone**: $0.50 USD/month
+- **DNS Queries**: $0.40 USD per million
+- **ACM Certificate**: FREE (us-east-1)
+- **Estimated Monthly Cost**: $1-2 USD
+
+### 5. Total Monthly Estimate
+- **Base Range**: $63-95 USD
+- **Variables**:
+  - Traffic volume
+  - Geographic distribution (PriceClass_All impact)
+  - WAF rule triggers
+  - Object lifecycle transitions
+
+## Implemented Optimizations
+
+1. **S3 Storage**:
+   - ✅ Immediate Intelligent-Tiering for avatar_images/
+   - ✅ Immediate Intelligent-Tiering for student_files/
+   - ✅ 90-day Archive Access tier
+   - ✅ 365-day Deep Archive tier
+   - ✅ 7-day cleanup for incomplete uploads
+
+2. **CloudFront**:
+   - ✅ 1-hour default cache
+   - ✅ 24-hour maximum cache
+   - ✅ HTTPS-only (redirect-to-https)
+   - ✅ Custom origin for React app (/react-build)
+
+3. **Security**:
+   - ✅ WAF with rate limiting
+   - ✅ S3 bucket public access blocked
+   - ✅ CloudFront OAC implemented
+   - ✅ TLS 1.2_2021 minimum protocol
+
+## Cost Monitoring Setup
+
+1. Recommended AWS Budget Alerts:
+   - Warning: $75 USD (80%)
+   - Critical: $95 USD (100%)
+
+2. Key Metrics:
+   - CloudFront request distribution by region
+   - WAF rule triggers
+   - S3 storage class transitions
+   - Cache hit ratios
+
+## Notes
+- All estimates in USD
+- Sydney region (ap-southeast-2) for S3
+- Global distribution (PriceClass_All) for CloudFront
+- Prices as of April 2024
+
+
 ## Tags
 
 Primary tags used across resources:
