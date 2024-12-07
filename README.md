@@ -16,10 +16,11 @@ Related Repositories:
 4. [Component Details](#component-details)
 5. [Security Features](#security-features)
 6. [Infrastructure Management](#infrastructure-management)
-7. [Monitoring and Operations](#monitoring-and-operations)
-8. [Troubleshooting](#troubleshooting)
-9. [Development](#development)
-10. [Support](#support)
+7. [CI/CD Pipeline](#ci-cd-pipeline)
+8. [Monitoring and Operations](#monitoring-and-operations)
+9. [Troubleshooting](#troubleshooting)
+10. [Development](#development)
+11. [Support](#support)
 
 ## Architecture Overview
 
@@ -384,6 +385,130 @@ aws s3 sync ./build s3://caringaldevops/react-build --delete
 # Verify CloudFront distribution
 Invoke-WebRequest -Uri "https://enrollment.martincaringal.co.nz" -Method Head
 ```
+
+
+## CI/CD Pipeline
+
+The project uses GitHub Actions for continuous integration and deployment, automatically building and deploying the React application to AWS infrastructure.
+
+### Workflow Overview
+
+The CI/CD pipeline triggers on:
+- Push events to the `main` branch
+- Pull requests to the `main` branch
+
+### Pipeline Steps
+
+1. **Environment Setup**
+   - Runs on Ubuntu latest
+   - Uses Node.js 20.x
+   - Configures npm cache for faster builds
+
+2. **Dependency Management**
+   - Checks for existing node_modules
+   - Installs dependencies using `npm ci` if needed
+   - Creates necessary environment files
+
+3. **Build Process**
+   - Builds the React application with production settings
+   - Uses environment variables from GitHub Secrets
+
+4. **AWS Deployment**
+   - Configures AWS credentials
+   - Syncs build output to S3 bucket
+   - Invalidates CloudFront cache
+
+### Required Secrets
+
+Configure the following secrets in your GitHub repository:
+
+```
+AWS_ACCESS_KEY_ID          - AWS IAM user access key
+AWS_SECRET_ACCESS_KEY      - AWS IAM user secret key
+REACT_APP_API_URL         - Backend API URL
+CLOUDFRONT_DISTRIBUTION_ID - CloudFront distribution ID
+```
+
+### Workflow Configuration
+
+```yaml
+name: React CI/CD
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [20.x]
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Check Dependencies
+        id: check-deps
+        run: |
+          if [ ! -d "node_modules" ]; then
+            echo "❌ node_modules directory is missing"
+            echo "missing_dependencies=1" >> $GITHUB_OUTPUT
+          else
+            echo "✅ node_modules directory exists"
+            echo "missing_dependencies=0" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Install Dependencies
+        if: steps.check-deps.outputs.missing_dependencies == 1
+        run: npm ci
+
+      - name: Create .env file
+        run: |
+          touch .env
+          echo "REACT_APP_API_URL=${{ secrets.REACT_APP_API_URL }}" >> .env
+
+      - name: Build
+        run: npm run build
+        env:
+          REACT_APP_API_URL: ${{ secrets.REACT_APP_API_URL }}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-southeast-2
+
+      - name: Deploy to S3
+        run: aws s3 sync ./build s3://caringaldevops/react-build --delete
+
+      - name: Invalidate CloudFront
+        run: |
+          aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
+```
+
+### Pipeline Maintenance
+
+1. **Regular Tasks**
+   - Monitor workflow runs
+   - Review deployment success rates
+   - Check build performance
+   - Update Node.js version as needed
+
+2. **Security Considerations**
+   - Rotate AWS credentials regularly
+   - Review and update GitHub secrets
+   - Maintain principle of least privilege for AWS IAM roles
+
 
 ## Support and Maintenance
 
