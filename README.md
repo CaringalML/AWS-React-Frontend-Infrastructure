@@ -80,10 +80,20 @@ variable "aws_region" {
 }
 ```
 
-4. Deploy the infrastructure:
+4. Format and validate Terraform code:
 ```bash
-terraform plan
-terraform apply
+terraform fmt
+terraform validate
+```
+
+5. Review the infrastructure plan:
+```bash
+terraform plan -out=tfplan 
+```
+
+6. Apply the infrastructure:
+```bash
+terraform apply tfplan
 ```
 
 ## Component Details
