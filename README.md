@@ -20,8 +20,8 @@ Related Repositories:
 8. [Troubleshooting](#troubleshooting)
 9. [Development](#development)
 10. [Deployment Results](#deployment-results)
-11. [Support](#support)
-12. [Infrastructure Costs](#infrastructure-costs)
+11. [Infrastructure Costs](#infrastructure-costs-usd)
+12. [Support](#support)
 
 ## Architecture Overview
 
