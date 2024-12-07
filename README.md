@@ -575,6 +575,13 @@ For support and assistance:
 - /avatar_images/*: Routes to media origin
 - /student_files/*: Routes to media origin
 
+### Web Access
+![Website Frontend](deployment-images/website-frontend.png)
+- Website URL: https://enrollment.martincaringal.co.nz
+- SSL Connection: Secure (🔒)
+- Loading Time: Optimized through CloudFront CDN
+
+
 ### S3 Bucket Storage
 ![S3 Bucket Structure](deployment-images/s3-bucket-structure.png)
 - Bucket 'caringaldevops' created with required folders:
@@ -585,8 +592,25 @@ For support and assistance:
 ### Web Application Firewall (WAF)
 ![WAF Rules](deployment-images/waf-rules.png)
 - WAF enabled with AWS managed rules
-- Rate limiting configured
+- Rate limiting configured (2000 requests/IP)
 - Security monitoring active
+
+#### Web Traffic Analysis
+![WAF Traffic](deployment-images/waf-traffic.png)
+- Allowed Requests: Successfully processed web traffic
+- Blocked Requests: Potential threats identified and blocked
+- Top IPs: Traffic distribution by source
+- Rule Triggers: Common attacks prevented
+  * SQL Injection attempts
+  * Cross-site scripting (XSS)
+  * Rate limit violations
+
+#### Security Metrics
+![WAF Metrics](deployment-images/waf-metrics.png)
+- Real-time request monitoring
+- Geographic traffic distribution
+- Rule effectiveness tracking
+- Threat patterns analysis
 
 ### Domain and SSL
 ![Route53 Setup](deployment-images/route53-setup.png)
