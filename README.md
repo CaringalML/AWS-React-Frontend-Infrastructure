@@ -545,6 +545,66 @@ For support and assistance:
 | domain_name | Custom domain name | string | enrollment.martincaringal.co.nz | no |
 | s3_bucket_name | S3 bucket name | string | caringaldevops | no |
 
+
+## Deployment Results
+
+### CloudFront Distribution
+![CloudFront Distribution](deployment-images/cloudfront-distribution.png)
+- Distribution active: enrollment.martincaringal.co.nz
+- HTTPS enabled with SSL certificate
+- Global edge locations configured
+
+#### Origins Configuration
+![CloudFront Origins](deployment-images/cloudfront-origins.png)
+1. **S3-React-App Origin**
+   - Domain: caringaldevops.s3.ap-southeast-2.amazonaws.com
+   - Origin Path: /react-build
+   - OAC: Enabled
+   - Purpose: Serves main React application
+
+2. **S3-Media Origin**
+   - Domain: caringaldevops.s3.ap-southeast-2.amazonaws.com
+   - Origin Path: /
+   - OAC: Enabled
+   - Purpose: Serves avatar images and student files
+
+#### Cache Behaviors
+- Default (*): Routes to React application
+- /avatar_images/*: Routes to media origin
+- /student_files/*: Routes to media origin
+
+### S3 Bucket Storage
+![S3 Bucket Structure](deployment-images/s3-bucket-structure.png)
+- Bucket 'caringaldevops' created with required folders:
+  * /react-build/ - Application files
+  * /avatar_images/ - User avatars
+  * /student_files/ - Student documents
+
+### Web Application Firewall (WAF)
+![WAF Rules](deployment-images/waf-rules.png)
+- WAF enabled with AWS managed rules
+- Rate limiting configured
+- Security monitoring active
+
+### Domain and SSL
+![Route53 Setup](deployment-images/route53-setup.png)
+- Domain successfully configured in Route53
+- SSL certificate validated and active
+- DNS records properly propagated
+
+### GitHub Actions Deployment
+![GitHub Actions](deployment-images/github-actions.png)
+- CI/CD pipeline successfully deployed
+- Automatic builds and deployments working
+- S3 syncing and CloudFront cache invalidation confirmed
+
+### Infrastructure Verification
+- ✅ Website accessible via HTTPS
+- ✅ CloudFront distribution working
+- ✅ S3 bucket properly secured
+- ✅ WAF protection active
+
+
 ## Tags
 
 Primary tags used across resources:
