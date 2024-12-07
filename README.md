@@ -2,7 +2,6 @@
 
 This repository contains Terraform configurations for deploying a secure and scalable web infrastructure on AWS, designed to serve a Student Record System built with React.
 
-
 Related Repositories:
 
 - Frontend Web Application: [CaringalML/Student-Enrollment-System-React](https://github.com/CaringalML/Student-Enrollment-System-React)
@@ -135,7 +134,7 @@ The S3 bucket (`caringaldevops`) is organized with the following structure:
    - Purpose: Stores user avatar images
    - Storage: Immediate transition to Intelligent-Tiering
    - Access: Through CloudFront only
-    - Note: While Amazon Rekognition is shown in the infrastructure diagram, image validation 
+   - Note: While Amazon Rekognition is shown in the infrastructure diagram, image validation 
      is processed by Laravel backend before storing in this directory
 
 2. `/react-build/`
@@ -257,8 +256,129 @@ resource "aws_route53_record" "cloudfront" {
    - Auto-renewal enabled for continuous security
    - us-east-1 region requirement for CloudFront compatibility
 
+## CI/CD Pipeline
 
-   ## Monitoring and Operations
+The project uses GitHub Actions for continuous integration and deployment, automatically building and deploying the React application to AWS infrastructure.
+
+### Workflow Overview
+
+The CI/CD pipeline triggers on:
+- Push events to the `main` branch
+- Pull requests to the `main` branch
+
+### Pipeline Steps
+
+1. **Environment Setup**
+   - Runs on Ubuntu latest
+   - Uses Node.js 20.x
+   - Configures npm cache for faster builds
+
+2. **Dependency Management**
+   - Checks for existing node_modules
+   - Installs dependencies using `npm ci` if needed
+   - Creates necessary environment files
+
+3. **Build Process**
+   - Builds the React application with production settings
+   - Uses environment variables from GitHub Secrets
+
+4. **AWS Deployment**
+   - Configures AWS credentials
+   - Syncs build output to S3 bucket
+   - Invalidates CloudFront cache
+
+### Required Secrets
+
+Configure the following secrets in your GitHub repository:
+
+```
+AWS_ACCESS_KEY_ID          - AWS IAM user access key
+AWS_SECRET_ACCESS_KEY      - AWS IAM user secret key
+REACT_APP_API_URL         - Backend API URL
+CLOUDFRONT_DISTRIBUTION_ID - CloudFront distribution ID
+```
+
+### Workflow Configuration
+
+```yaml
+name: React CI/CD
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [20.x]
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Check Dependencies
+        id: check-deps
+        run: |
+          if [ ! -d "node_modules" ]; then
+            echo "❌ node_modules directory is missing"
+            echo "missing_dependencies=1" >> $GITHUB_OUTPUT
+          else
+            echo "✅ node_modules directory exists"
+            echo "missing_dependencies=0" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Install Dependencies
+        if: steps.check-deps.outputs.missing_dependencies == 1
+        run: npm ci
+
+      - name: Create .env file
+        run: |
+          touch .env
+          echo "REACT_APP_API_URL=${{ secrets.REACT_APP_API_URL }}" >> .env
+
+      - name: Build
+        run: npm run build
+        env:
+          REACT_APP_API_URL: ${{ secrets.REACT_APP_API_URL }}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-southeast-2
+
+      - name: Deploy to S3
+        run: aws s3 sync ./build s3://caringaldevops/react-build --delete
+
+      - name: Invalidate CloudFront
+        run: |
+          aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
+```
+
+### Pipeline Maintenance
+
+1. **Regular Tasks**
+   - Monitor workflow runs
+   - Review deployment success rates
+   - Check build performance
+   - Update Node.js version as needed
+
+2. **Security Considerations**
+   - Rotate AWS credentials regularly
+   - Review and update GitHub secrets
+   - Maintain principle of least privilege for AWS IAM roles
+
+## Monitoring and Operations
 
 ### CloudWatch Monitoring
 
@@ -386,131 +506,7 @@ aws s3 sync ./build s3://caringaldevops/react-build --delete
 Invoke-WebRequest -Uri "https://enrollment.martincaringal.co.nz" -Method Head
 ```
 
-
-## CI/CD Pipeline
-
-The project uses GitHub Actions for continuous integration and deployment, automatically building and deploying the React application to AWS infrastructure.
-
-### Workflow Overview
-
-The CI/CD pipeline triggers on:
-- Push events to the `main` branch
-- Pull requests to the `main` branch
-
-### Pipeline Steps
-
-1. **Environment Setup**
-   - Runs on Ubuntu latest
-   - Uses Node.js 20.x
-   - Configures npm cache for faster builds
-
-2. **Dependency Management**
-   - Checks for existing node_modules
-   - Installs dependencies using `npm ci` if needed
-   - Creates necessary environment files
-
-3. **Build Process**
-   - Builds the React application with production settings
-   - Uses environment variables from GitHub Secrets
-
-4. **AWS Deployment**
-   - Configures AWS credentials
-   - Syncs build output to S3 bucket
-   - Invalidates CloudFront cache
-
-### Required Secrets
-
-Configure the following secrets in your GitHub repository:
-
-```
-AWS_ACCESS_KEY_ID          - AWS IAM user access key
-AWS_SECRET_ACCESS_KEY      - AWS IAM user secret key
-REACT_APP_API_URL         - Backend API URL
-CLOUDFRONT_DISTRIBUTION_ID - CloudFront distribution ID
-```
-
-### Workflow Configuration
-
-```yaml
-name: React CI/CD
-
-on:
-  push:
-    branches: ["main"]
-  pull_request:
-    branches: ["main"]
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    
-    strategy:
-      matrix:
-        node-version: [20.x]
-
-    steps:
-      - uses: actions/checkout@v4
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-
-      - name: Check Dependencies
-        id: check-deps
-        run: |
-          if [ ! -d "node_modules" ]; then
-            echo "❌ node_modules directory is missing"
-            echo "missing_dependencies=1" >> $GITHUB_OUTPUT
-          else
-            echo "✅ node_modules directory exists"
-            echo "missing_dependencies=0" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Install Dependencies
-        if: steps.check-deps.outputs.missing_dependencies == 1
-        run: npm ci
-
-      - name: Create .env file
-        run: |
-          touch .env
-          echo "REACT_APP_API_URL=${{ secrets.REACT_APP_API_URL }}" >> .env
-
-      - name: Build
-        run: npm run build
-        env:
-          REACT_APP_API_URL: ${{ secrets.REACT_APP_API_URL }}
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ap-southeast-2
-
-      - name: Deploy to S3
-        run: aws s3 sync ./build s3://caringaldevops/react-build --delete
-
-      - name: Invalidate CloudFront
-        run: |
-          aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
-```
-
-### Pipeline Maintenance
-
-1. **Regular Tasks**
-   - Monitor workflow runs
-   - Review deployment success rates
-   - Check build performance
-   - Update Node.js version as needed
-
-2. **Security Considerations**
-   - Rotate AWS credentials regularly
-   - Review and update GitHub secrets
-   - Maintain principle of least privilege for AWS IAM roles
-
-
-## Support and Maintenance
+## Support
 
 ### Regular Maintenance
 
@@ -544,9 +540,6 @@ For support and assistance:
 | domain_name | Custom domain name | string | enrollment.martincaringal.co.nz | no |
 | s3_bucket_name | S3 bucket name | string | caringaldevops | no |
 
-## Tags
-
-Primary tags used across resources:
 ```hcl
 tags = {
   Environment = var.environment
