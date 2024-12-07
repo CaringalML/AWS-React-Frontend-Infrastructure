@@ -92,12 +92,12 @@ terraform validate
 
 5. Review the infrastructure plan:
 ```bash
-terraform plan -out=tfplan 
+terraform plan  
 ```
 
 6. Apply the infrastructure:
 ```bash
-terraform apply tfplan
+terraform apply 
 ```
 
 ## Component Details
