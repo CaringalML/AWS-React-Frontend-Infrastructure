@@ -19,7 +19,7 @@ Related Repositories:
 7. [Monitoring and Operations](#monitoring-and-operations)
 8. [Troubleshooting](#troubleshooting)
 9. [Development](#development)
-10. [CI/CD Pipeline](#ci-cd-pipeline)
+10. [CI/CD Pipeline](#cicd-pipeline)
 11. [Deployment Results](#deployment-results)
 12. [Infrastructure Costs](#infrastructure-cost-estimation-usd)
 13. [Support and Maintenance](#support-and-maintenance)
