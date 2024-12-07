@@ -16,12 +16,12 @@ Related Repositories:
 4. [Component Details](#component-details)
 5. [Security Features](#security-features)
 6. [Infrastructure Management](#infrastructure-management)
-7. [CI/CD Pipeline](#ci-cd-pipeline)
-8. [Monitoring and Operations](#monitoring-and-operations)
-9. [Troubleshooting](#troubleshooting)
-10. [Development](#development)
-11. [Deployment Results](#deployment-results)
-12. [Support](#support)
+7. [Monitoring and Operations](#monitoring-and-operations)
+8. [Troubleshooting](#troubleshooting)
+9. [Development](#development)
+10. [Deployment Results](#deployment-results)
+11. [Support](#support)
+12. [Infrastructure Costs](#infrastructure-costs)
 
 ## Architecture Overview
 
