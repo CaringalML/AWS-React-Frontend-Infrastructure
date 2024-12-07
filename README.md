@@ -16,11 +16,10 @@ Related Repositories:
 4. [Component Details](#component-details)
 5. [Security Features](#security-features)
 6. [Infrastructure Management](#infrastructure-management)
-7. [CI/CD Pipeline](#ci-cd-pipeline)
-8. [Monitoring and Operations](#monitoring-and-operations)
-9. [Troubleshooting](#troubleshooting)
-10. [Development](#development)
-11. [Support](#support)
+7. [Monitoring and Operations](#monitoring-and-operations)
+8. [Troubleshooting](#troubleshooting)
+9. [Development](#development)
+10. [Support](#support)
 
 ## Architecture Overview
 
@@ -388,6 +387,8 @@ Invoke-WebRequest -Uri "https://enrollment.martincaringal.co.nz" -Method Head
 
 
 ## CI/CD Pipeline
+
+### GitHub Actions Workflow
 
 The project uses GitHub Actions for continuous integration and deployment, automatically building and deploying the React application to AWS infrastructure.
 
