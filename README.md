@@ -1,6 +1,6 @@
 # AWS Frontend Infrastructure for Student Enrollment System
 
-This repository contains Terraform configurations for deploying a secure and scalable web infrastructure on AWS, designed to serve a Student Record System built with React.
+This repository contains Terraform configurations for deploying a secure and scalable web infrastructure on AWS, designed to serve a Student Enrollment System built with React.
 
 
 Related Repositories:
@@ -39,7 +39,7 @@ The infrastructure consists of:
 ![AWS Infrastructure Diagram](architecture-4k.png)
 
 ### Key Components
-- **CloudFront Distribution**: Serves the React-based Student Record System
+- **CloudFront Distribution**: Serves the React-based Student Enrollment System
 - **S3 Bucket**: Stores static files and student-related media content
 - **WAF**: Provides web application firewall protection
 - **Route53**: Manages DNS records
@@ -142,7 +142,7 @@ The S3 bucket (`caringaldevops`) is organized with the following structure:
      is processed by Laravel backend before storing in this directory
 
 2. `/react-build/`
-   - Purpose: Contains Student Record System React application build files
+   - Purpose: Contains Student Enrollment System React application build files
    - Access: Served as main application through CloudFront
 
 3. `/student_files/`
@@ -195,7 +195,7 @@ tiering {
 3. **Access Control**
    - Public access blocked for student data security
    - CloudFront OAC access only
-   - CORS configuration for Student Record System API access
+   - CORS configuration for Student Enrollment System API access
 
 ## Security Features
 
